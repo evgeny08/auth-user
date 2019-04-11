@@ -29,6 +29,7 @@ type Config struct {
 // Storage is a persistent auth-user storage.
 type Storage interface {
 	CreateUser(ctx context.Context, user *types.User) error
+	FindUserByLogin(ctx context.Context, login string) (*types.User, error)
 }
 
 // New creates a new http server.

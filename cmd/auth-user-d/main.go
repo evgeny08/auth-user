@@ -7,24 +7,22 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/time/rate"
-
-	"github.com/kelseyhightower/envconfig"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/kelseyhightower/envconfig"
+	"golang.org/x/time/rate"
 
 	"github.com/evgeny08/auth-user/httpserver"
 	"github.com/evgeny08/auth-user/storage"
 )
 
 type configuration struct {
-	HTTPPort       string        `envconfig:"HTTP_PORT" default:"24020"`
-	RateLimitEvery time.Duration `envconfig:"RATE_LIMIT_EVERY" default:"1us"`
-	RateLimitBurst int           `envconfig:"RATE_LIMIT_BURST" default:"100"`
+	HTTPPort       string        `envconfig:"AUTH_HTTP_PORT" default:"24020"`
+	RateLimitEvery time.Duration `envconfig:"AUTH_RATE_LIMIT_EVERY" default:"1us"`
+	RateLimitBurst int           `envconfig:"AUTH_RATE_LIMIT_BURST" default:"100"`
 
-	MongoURL string `envconfig:"MONGO_URL" default:"127.0.0.1:27017"`
-	DBName   string `envconfig:"DB_NAME"   default:"key-generator"`
+	MongoURL string `envconfig:"AUTH_MONGO_URL" default:"127.0.0.1:27017"`
+	DBName   string `envconfig:"AUTH_DB_NAME"   default:"auth-user"`
 }
 
 func main() {

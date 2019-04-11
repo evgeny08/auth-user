@@ -14,7 +14,7 @@ import (
 var db *mgo.Database
 
 const (
-	collectionUser  = "auth_user"
+	collectionUser = "auth_user"
 	collectionAuth = "auth_main"
 )
 
@@ -89,7 +89,7 @@ func (s *Storage) connect(cfg *Config) error {
 			s.logger.Log("failed to connect to mongo: %v", err)
 			continue
 		}
-		s.logger.Log("established mongo connection")
+		s.logger.Log("msg", "established mongo connection")
 		s.mu.Lock()
 		s.session = session
 		s.mu.Unlock()
