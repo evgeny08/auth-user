@@ -31,6 +31,7 @@ func (s *basicService) createUser(ctx context.Context, user *types.User) error {
 	if len(user.Password) < passwordLength {
 		return errorf(ErrBadParams, "password must be 8 symbols min")
 	}
+
 	_, err := s.storage.FindUserByLogin(ctx, user.Login)
 	if err == nil {
 		return errorf(ErrConflict, "user with this login already exist")
