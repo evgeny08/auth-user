@@ -23,3 +23,21 @@ type createUserRequest struct {
 type createUserResponse struct {
 	Err error
 }
+
+func makeAuthUserEndpoint(svc service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(authUserRequest)
+		session, err := svc.authUser(ctx, req.Login, req.Password)
+		return authUserResponse{Session: session, Err: err}, nil
+	}
+}
+
+type authUserRequest struct {
+	Login    string
+	Password string
+}
+
+type authUserResponse struct {
+	Session *types.Session
+	Err     error
+}

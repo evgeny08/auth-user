@@ -10,9 +10,10 @@ import (
 	"github.com/evgeny08/auth-user/types"
 )
 
-// Client is a client for Key Generator service.
+// Client is a client for auth-user service.
 type Client struct {
 	createUser endpoint.Endpoint
+	authUser   endpoint.Endpoint
 }
 
 // NewClient creates a new service client.
@@ -29,6 +30,13 @@ func NewClient(serviceURL string) (*Client, error) {
 			encodeCreateUserRequest,
 			decodeCreateUserResponse,
 		).Endpoint(),
+
+		authUser: kithttp.NewClient(
+			"GET",
+			baseURL,
+			encodeAuthUserRequest,
+			decodeAuthUserResponse,
+		).Endpoint(),
 	}
 
 	return c, nil
@@ -43,4 +51,15 @@ func (c *Client) CreateUser(ctx context.Context, user *types.User) error {
 	}
 	res := response.(createUserResponse)
 	return res.Err
+}
+
+// AuthUser Authentication user into the system.
+func (c *Client) AuthUser(ctx context.Context, login, password string) (*types.Session, error) {
+	request := authUserRequest{Login: login, Password: password}
+	response, err := c.authUser(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	res := response.(authUserResponse)
+	return res.Session, res.Err
 }

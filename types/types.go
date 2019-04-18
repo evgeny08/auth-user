@@ -7,7 +7,7 @@ type User struct {
 }
 
 // Token describes the auth
-type Token struct {
+type Session struct {
 	AccessToken         string `json:"access_token"          bson:"access_token"`
 	ExpiresAccessToken  int64  `json:"expires_access_token"  bson:"expires_access_token"`
 	RefreshToken        string `json:"refresh_token"         bson:"refresh_token"`

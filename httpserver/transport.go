@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -44,6 +46,36 @@ func decodeCreateUserResponse(_ context.Context, r *http.Response) (interface{},
 		return createUserResponse{Err: decodeError(r)}, nil
 	}
 	res := createUserResponse{Err: nil}
+	return res, nil
+}
+
+// Service.AuthUser encoders/decoders.
+func encodeAuthUserRequest(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.(authUserRequest)
+	r.URL.Path = "/api/v1/login/" + url.QueryEscape(req.Login) + "/password/" + url.QueryEscape(req.Password)
+	return nil
+}
+
+func decodeAuthUserRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	login := mux.Vars(r)["login"]
+	password := mux.Vars(r)["password"]
+	return authUserRequest{Login: login, Password: password}, nil
+}
+
+func encodeAuthUserResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	res := response.(authUserResponse)
+	if res.Err != nil {
+		return encodeError(w, res.Err, true)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res.Session)
+}
+
+func decodeAuthUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return authUserResponse{Err: decodeError(r)}, nil
+	}
+	res := authUserResponse{Err: nil}
 	return res, nil
 }
 

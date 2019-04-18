@@ -19,10 +19,21 @@ type loggingMiddleware struct {
 func (m *loggingMiddleware) createUser(ctx context.Context, user *types.User) error {
 	begin := time.Now()
 	err := m.next.createUser(ctx, user)
-	_ = level.Info(m.logger).Log(
+	level.Info(m.logger).Log(
 		"method", "CreateUser",
 		"err", err,
 		"elapsed", time.Since(begin),
 	)
 	return err
+}
+
+func (m *loggingMiddleware) authUser(ctx context.Context, login, password string) (*types.Session, error) {
+	begin := time.Now()
+	session, err := m.next.authUser(ctx, login, password)
+	level.Info(m.logger).Log(
+		"method", "AuthUser",
+		"err", err,
+		"elapsed", time.Since(begin),
+	)
+	return session, err
 }

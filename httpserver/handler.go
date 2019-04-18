@@ -24,12 +24,21 @@ func newHandler(cfg *handlerConfig) http.Handler {
 	createUserEndpoint := makeCreateUserEndpoint(svc)
 	createUserEndpoint = applyMiddleware(createUserEndpoint, "CreateUser", cfg)
 
+	authUserEndpoint := makeAuthUserEndpoint(svc)
+	authUserEndpoint = applyMiddleware(authUserEndpoint, "AuthUser", cfg)
+
 	router := mux.NewRouter()
 
 	router.Path("/api/v1/user").Methods("POST").Handler(kithttp.NewServer(
 		createUserEndpoint,
 		decodeCreateUserRequest,
 		encodeCreateUserResponse,
+	))
+
+	router.Path("/api/v1/login/{login}/password/{password}").Methods("GET").Handler(kithttp.NewServer(
+		authUserEndpoint,
+		decodeAuthUserRequest,
+		encodeAuthUserResponse,
 	))
 
 	return router

@@ -21,3 +21,9 @@ func (s *Storage) FindUserByLogin(ctx context.Context, login string) (*types.Use
 	err := db.C(collectionUser).Find(filter).One(&user)
 	return user, err
 }
+
+// CreateSession create new session in storage
+func (s *Storage) CreateSession(ctx context.Context, session *types.Session) error {
+	err := db.C(collectionAuth).Insert(&session)
+	return err
+}

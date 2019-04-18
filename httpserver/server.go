@@ -30,6 +30,7 @@ type Config struct {
 type Storage interface {
 	CreateUser(ctx context.Context, user *types.User) error
 	FindUserByLogin(ctx context.Context, login string) (*types.User, error)
+	CreateSession(ctx context.Context, session *types.Session) error
 }
 
 // New creates a new http server.

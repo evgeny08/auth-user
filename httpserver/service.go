@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"math/rand"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 // service manages HTTP server methods.
 type service interface {
 	createUser(ctx context.Context, user *types.User) error
+	authUser(ctx context.Context, login, password string) (*types.Session, error)
 }
 
 type basicService struct {
@@ -44,6 +46,32 @@ func (s *basicService) createUser(ctx context.Context, user *types.User) error {
 	return nil
 }
 
+// authUser Authentication user into the system
+func (s *basicService) authUser(ctx context.Context, login, password string) (*types.Session, error) {
+	// Validate
+	u, err := s.storage.FindUserByLogin(ctx, login)
+	if err != nil {
+		if storageErrIsNotFound(err) {
+			return nil, errorf(ErrNotFound, "user with this login not found")
+		}
+		return nil, errorf(ErrInternal, "find user error: %v", err)
+	}
+	if u.Password != password {
+		return nil, errorf(ErrBadParams, "wrong password")
+	}
+	session := &types.Session{
+		AccessToken:         uuid.New().String(),
+		ExpiresAccessToken:  time.Now().UTC().Add(30 * time.Minute).UnixNano(),
+		RefreshToken:        uuid.New().String(),
+		ExpiresRefreshToken: time.Now().UTC().AddDate(0, 2, 0).UnixNano(),
+	}
+	err = s.storage.CreateSession(ctx, session)
+	if err != nil {
+		return nil, errorf(ErrInternal, "failed to create session: %v", err)
+	}
+	return session, nil
+}
+
 // storageErrIsNotFound checks if the storage error is "not found".
 func storageErrIsNotFound(err error) bool {
 	type notFound interface {
@@ -56,63 +84,3 @@ func storageErrIsNotFound(err error) bool {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
-
-//encrypt userPassword
-//var (
-//	initialVector = "1374653317652235"
-//	passphrase    = "Impassphrasegood"
-//)
-//
-//func (s*basicService)encryptPass(user *types.User) () {
-//	var userPass = user.Password
-//
-//	encryptedData := EncryptAES(userPass, []byte(passphrase))
-//	encryptedString := base64.StdEncoding.EncodeToString(encryptedData)
-//
-//	encryptedData, _ = base64.StdEncoding.DecodeString(encryptedString)
-//	decryptedText := DecryptAES(encryptedData, []byte(passphrase))
-//	fmt.Println(string(decryptedText))
-//}
-//
-//func EncryptAES(src string, key []byte) []byte {
-//	block, err := aes.NewCipher(key)
-//	if err != nil {
-//		fmt.Println("key error1", err)
-//	}
-//	if src == "" {
-//		fmt.Println("plain content empty")
-//	}
-//	ecb := cipher.NewCBCEncrypter(block, []byte(initialVector))
-//	content := []byte(src)
-//	content = PaddingPKCS5(content, block.BlockSize())
-//	crypted := make([]byte, len(content))
-//	ecb.CryptBlocks(crypted, content)
-//
-//	return crypted
-//}
-//
-//func DecryptAES(crypt []byte, key []byte) []byte {
-//	block, err := aes.NewCipher(key)
-//	if err != nil {
-//		fmt.Println("key error1", err)
-//	}
-//	if len(crypt) == 0 {
-//		fmt.Println("plain content empty")
-//	}
-//	ecb := cipher.NewCBCDecrypter(block, []byte(initialVector))
-//	decrypted := make([]byte, len(crypt))
-//	ecb.CryptBlocks(decrypted, crypt)
-//
-//	return TrimmingPKCS5(decrypted)
-//}
-//
-//func PaddingPKCS5(cipherText []byte, blockSize int) []byte {
-//	padding := blockSize - len(cipherText)%blockSize
-//	padText := bytes.Repeat([]byte{byte(padding)}, padding)
-//	return append(cipherText, padText...)
-//}
-//
-//func TrimmingPKCS5(encrypt []byte) []byte {
-//	padding := encrypt[len(encrypt)-1]
-//	return encrypt[:len(encrypt)-int(padding)]
-//}
