@@ -12,8 +12,9 @@ import (
 
 // Client is a client for auth-user service.
 type Client struct {
-	createUser endpoint.Endpoint
-	authUser   endpoint.Endpoint
+	createUser      endpoint.Endpoint
+	authUser        endpoint.Endpoint
+	findUserByLogin endpoint.Endpoint
 }
 
 // NewClient creates a new service client.
@@ -36,6 +37,13 @@ func NewClient(serviceURL string) (*Client, error) {
 			baseURL,
 			encodeAuthUserRequest,
 			decodeAuthUserResponse,
+		).Endpoint(),
+
+		findUserByLogin: kithttp.NewClient(
+			"GET",
+			baseURL,
+			encodeFindUserByLoginRequest,
+			decodeFindUserByLoginResponse,
 		).Endpoint(),
 	}
 
@@ -62,4 +70,15 @@ func (c *Client) AuthUser(ctx context.Context, login, password string) (*types.S
 	}
 	res := response.(authUserResponse)
 	return res.Session, res.Err
+}
+
+// findUserByLogin return user by login
+func (c *Client) FindUserByLogin(ctx context.Context, login string) (*types.User, error) {
+	request := findUserByLoginRequest{Login: login}
+	response, err := c.findUserByLogin(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	res := response.(findUserByLoginResponse)
+	return res.User, res.Err
 }

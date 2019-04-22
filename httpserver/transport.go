@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/evgeny08/auth-user/types"
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
@@ -77,6 +78,36 @@ func decodeAuthUserResponse(_ context.Context, r *http.Response) (interface{}, e
 	}
 	res := authUserResponse{Err: nil}
 	return res, nil
+}
+
+// Service.FindUserByLogin encoders/decoders.
+func encodeFindUserByLoginRequest(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.(findUserByLoginRequest)
+	r.URL.Path = "/api/v1/user/" + url.QueryEscape(req.Login)
+	return nil
+}
+
+func decodeFindUserByLoginRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	login := mux.Vars(r)["login"]
+	return findUserByLoginRequest{Login: login}, nil
+}
+
+func encodeFindUserByLoginResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	res := response.(findUserByLoginResponse)
+	if res.Err != nil {
+		return encodeError(w, res.Err, true)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res.User)
+}
+
+func decodeFindUserByLoginResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return findUserByLoginResponse{Err: decodeError(r)}, nil
+	}
+	res := findUserByLoginResponse{User: &types.User{}}
+	err := json.NewDecoder(r.Body).Decode(res.User)
+	return res, err
 }
 
 // errKindToStatus maps service error kinds to the HTTP response codes.

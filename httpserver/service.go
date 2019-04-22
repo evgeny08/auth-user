@@ -16,6 +16,7 @@ import (
 type service interface {
 	createUser(ctx context.Context, user *types.User) error
 	authUser(ctx context.Context, login, password string) (*types.Session, error)
+	findUserByLogin(ctx context.Context, login string) (*types.User, error)
 }
 
 type basicService struct {
@@ -70,6 +71,22 @@ func (s *basicService) authUser(ctx context.Context, login, password string) (*t
 		return nil, errorf(ErrInternal, "failed to create session: %v", err)
 	}
 	return session, nil
+}
+
+// findUserByLogin find user in storage by login
+func (s *basicService) findUserByLogin(ctx context.Context, login string) (*types.User, error) {
+	// Validate
+	if strings.TrimSpace(login) == "" {
+		return nil, errorf(ErrBadParams, "empty login")
+	}
+	user, err := s.storage.FindUserByLogin(ctx, login)
+	if err != nil {
+		if storageErrIsNotFound(err) {
+			return nil, errorf(ErrNotFound, "user is not found")
+		}
+		return nil, errorf(ErrInternal, "failed to find user: %v", err)
+	}
+	return user, nil
 }
 
 // storageErrIsNotFound checks if the storage error is "not found".

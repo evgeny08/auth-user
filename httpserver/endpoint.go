@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-
 	"github.com/go-kit/kit/endpoint"
 
 	"github.com/evgeny08/auth-user/types"
@@ -40,4 +39,21 @@ type authUserRequest struct {
 type authUserResponse struct {
 	Session *types.Session
 	Err     error
+}
+
+func makeFindUserByLoginEndpoint(svc service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(findUserByLoginRequest)
+		user, err := svc.findUserByLogin(ctx, req.Login)
+		return findUserByLoginResponse{User: user, Err: err}, nil
+	}
+}
+
+type findUserByLoginRequest struct {
+	Login string
+}
+
+type findUserByLoginResponse struct {
+	User *types.User
+	Err  error
 }

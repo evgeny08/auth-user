@@ -37,3 +37,14 @@ func (m *loggingMiddleware) authUser(ctx context.Context, login, password string
 	)
 	return session, err
 }
+
+func (m *loggingMiddleware) findUserByLogin(ctx context.Context, login string) (*types.User, error) {
+	begin := time.Now()
+	user, err := m.next.findUserByLogin(ctx, login)
+	level.Info(m.logger).Log(
+		"method", "FindUserByLogin",
+		"err", err,
+		"elapsed", time.Since(begin),
+	)
+	return user, err
+}
