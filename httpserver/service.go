@@ -75,7 +75,7 @@ func (s *basicService) authUser(ctx context.Context, login, password string) (*t
 
 // findUserByLogin find user in storage by login
 func (s *basicService) findUserByLogin(ctx context.Context, login, clientToken string) (*types.User, error) {
-	// Validate
+	// Validate access Token
 	sess, err := s.storage.FindAccessToken(ctx, clientToken)
 	if err != nil {
 		if storageErrIsNotFound(err) {
@@ -86,7 +86,10 @@ func (s *basicService) findUserByLogin(ctx context.Context, login, clientToken s
 	if sess.AccessToken != clientToken{
 		return nil, errorf(ErrInternal, "failed to authorisation: %v", err)
 	}
-
+	if sess.ExpiresAccessToken < time.Now().UTC().UnixNano() {
+		return nil, errorf(ErrInternal, "the token has expired, log in")
+	}
+	// Validate
 	if strings.TrimSpace(login) == "" {
 		return nil, errorf(ErrBadParams, "empty login")
 	}
