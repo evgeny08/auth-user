@@ -31,6 +31,7 @@ type Storage interface {
 	CreateUser(ctx context.Context, user *types.User) error
 	FindUserByLogin(ctx context.Context, login string) (*types.User, error)
 	CreateSession(ctx context.Context, session *types.Session) error
+	FindAccessToken(ctx context.Context, clientToken string) (*types.Session, error)
 }
 
 // New creates a new http server.

@@ -73,7 +73,7 @@ func (c *Client) AuthUser(ctx context.Context, login, password string) (*types.S
 }
 
 // findUserByLogin return user by login
-func (c *Client) FindUserByLogin(ctx context.Context, login string) (*types.User, error) {
+func (c *Client) FindUserByLogin(ctx context.Context, login, clientToken string) (*types.User, error) {
 	request := findUserByLoginRequest{Login: login}
 	response, err := c.findUserByLogin(ctx, request)
 	if err != nil {

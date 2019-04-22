@@ -84,12 +84,20 @@ func decodeAuthUserResponse(_ context.Context, r *http.Response) (interface{}, e
 func encodeFindUserByLoginRequest(_ context.Context, r *http.Request, request interface{}) error {
 	req := request.(findUserByLoginRequest)
 	r.URL.Path = "/api/v1/user/" + url.QueryEscape(req.Login)
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(req); err != nil {
+		return err
+	}
+	r.Body = ioutil.NopCloser(&buf)
 	return nil
 }
 
 func decodeFindUserByLoginRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	login := mux.Vars(r)["login"]
-	return findUserByLoginRequest{Login: login}, nil
+	var req findUserByLoginRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	return findUserByLoginRequest{Login: login, ClientToken:req.ClientToken}, err
 }
 
 func encodeFindUserByLoginResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {

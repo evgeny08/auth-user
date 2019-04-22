@@ -16,7 +16,7 @@ import (
 type service interface {
 	createUser(ctx context.Context, user *types.User) error
 	authUser(ctx context.Context, login, password string) (*types.Session, error)
-	findUserByLogin(ctx context.Context, login string) (*types.User, error)
+	findUserByLogin(ctx context.Context, login, clientToken string) (*types.User, error)
 }
 
 type basicService struct {
@@ -74,8 +74,19 @@ func (s *basicService) authUser(ctx context.Context, login, password string) (*t
 }
 
 // findUserByLogin find user in storage by login
-func (s *basicService) findUserByLogin(ctx context.Context, login string) (*types.User, error) {
+func (s *basicService) findUserByLogin(ctx context.Context, login, clientToken string) (*types.User, error) {
 	// Validate
+	sess, err := s.storage.FindAccessToken(ctx, clientToken)
+	if err != nil {
+		if storageErrIsNotFound(err) {
+			return nil, errorf(ErrNotFound, "token not found")
+		}
+		return nil, errorf(ErrInternal, "find token error: %v", err)
+	}
+	if sess.AccessToken != clientToken{
+		return nil, errorf(ErrInternal, "failed to authorisation: %v", err)
+	}
+
 	if strings.TrimSpace(login) == "" {
 		return nil, errorf(ErrBadParams, "empty login")
 	}

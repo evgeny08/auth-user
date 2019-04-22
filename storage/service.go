@@ -27,3 +27,11 @@ func (s *Storage) CreateSession(ctx context.Context, session *types.Session) err
 	err := db.C(collectionAuth).Insert(&session)
 	return err
 }
+
+// FindAccessToken find AccessToken by storage
+func (s *Storage) FindAccessToken(ctx context.Context, clientToken string) (*types.Session, error) {
+	var session *types.Session
+	filter := bson.M{"access_token": clientToken}
+	err := db.C(collectionAuth).Find(filter).One(&session)
+	return session, err
+}

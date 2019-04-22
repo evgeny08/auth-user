@@ -44,13 +44,14 @@ type authUserResponse struct {
 func makeFindUserByLoginEndpoint(svc service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(findUserByLoginRequest)
-		user, err := svc.findUserByLogin(ctx, req.Login)
+		user, err := svc.findUserByLogin(ctx, req.Login, req.ClientToken)
 		return findUserByLoginResponse{User: user, Err: err}, nil
 	}
 }
 
 type findUserByLoginRequest struct {
-	Login string
+	Login       string
+	ClientToken string `json:"client_token"`
 }
 
 type findUserByLoginResponse struct {
