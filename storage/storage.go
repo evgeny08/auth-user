@@ -3,15 +3,16 @@ package storage
 import (
 	"context"
 	"errors"
-	"sync"
-
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2"
+	"sync"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-)
 
-var db *mgo.Database
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 const (
 	collectionUser = "auth_user"
@@ -25,7 +26,7 @@ type Storage struct {
 	logger log.Logger
 
 	mu      sync.RWMutex
-	session *mgo.Session // Master session.
+	session *mongo.Database
 	lastErr error
 
 	ctx    context.Context
@@ -70,13 +71,13 @@ func (s *Storage) connect(cfg *Config) error {
 			return nil
 		default:
 		}
-
-		session, err := mgo.Dial(cfg.URL)
+		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		session, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.URL))
 		if err != nil {
 			return err
 		}
 
-		db = session.DB(cfg.DBName)
+
 
 		if err != nil {
 			// Check if we're canceled
@@ -91,7 +92,7 @@ func (s *Storage) connect(cfg *Config) error {
 		}
 		s.logger.Log("msg", "established mongo connection")
 		s.mu.Lock()
-		s.session = session
+		s.session = session.Database(cfg.DBName)
 		s.mu.Unlock()
 		return nil
 	}
@@ -103,6 +104,10 @@ func (s *Storage) Shutdown() {
 	s.cancel()
 	<-s.donec
 
+	err = s.session.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Close mongo session.
 	s.mu.Lock()
 	if s.session != nil {

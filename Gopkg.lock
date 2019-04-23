@@ -14,6 +14,24 @@
   version = "v0.4.0"
 
 [[projects]]
+  name = "github.com/go-stack/stack"
+  packages = ["."]
+  revision = "2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a"
+  version = "v1.8.0"
+
+[[projects]]
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "2a8bb927dd31d8daada140a5d09578521ce5c36a"
+  version = "v0.0.1"
+
+[[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+  version = "v1.1.1"
+
+[[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
   revision = "c5c6c98bc25355028a63748a498942a6398ccd22"
@@ -32,6 +50,42 @@
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
 
 [[projects]]
+  name = "github.com/mongodb/mongo-go-driver"
+  packages = ["bson","bson/bsoncodec","bson/bsonrw","bson/bsontype","bson/primitive","event","internal","mongo","mongo/options","mongo/readconcern","mongo/readpref","mongo/writeconcern","tag","version","x/bsonx","x/bsonx/bsoncore","x/mongo/driver","x/mongo/driver/auth","x/mongo/driver/auth/internal/gssapi","x/mongo/driver/session","x/mongo/driver/topology","x/mongo/driver/uuid","x/network/address","x/network/command","x/network/compressor","x/network/connection","x/network/connstring","x/network/description","x/network/result","x/network/wiremessage"]
+  revision = "e1f3d104525e687eda76125707c9852e429f2730"
+  version = "v0.3.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xdg/scram"
+  packages = ["."]
+  revision = "7eeb5667e42c09cb51bf7b7c28aea8c56767da90"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xdg/stringprep"
+  packages = ["."]
+  revision = "73f8eece6fdcd902c185bf651de50f3828bed5ed"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["pbkdf2"]
+  revision = "d864b10871cd4370fe574816b489c819c675ccc7"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["semaphore"]
+  revision = "112230192c580c3556b8cee6403af37a4fc5f28c"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/time"
   packages = ["rate"]
@@ -46,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eb593f7cdc0eebba1b2e8706059787b66c2bec7b3b0b9b582917ad998d0be65e"
+  inputs-digest = "4619d7cf0830c66e1a4489b5c405484daadfbd7800c094be8b944eabb38e3338"
   solver-name = "gps-cdcl"
   solver-version = 1
