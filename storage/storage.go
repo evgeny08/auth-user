@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gopkg.in/mgo.v2"
 	"sync"
 	"time"
 
@@ -77,8 +76,6 @@ func (s *Storage) connect(cfg *Config) error {
 			return err
 		}
 
-
-
 		if err != nil {
 			// Check if we're canceled
 			// once more before sleeping.
@@ -100,22 +97,13 @@ func (s *Storage) connect(cfg *Config) error {
 
 // Shutdown close mongo session
 func (s *Storage) Shutdown() {
-	// Cancel connect loop.
-	s.cancel()
-	<-s.donec
 
-	err = s.session.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
 	// Close mongo session.
-	s.mu.Lock()
 	if s.session != nil {
-		s.session.Close()
+		s.session.Client().Disconnect(context.TODO())
 		s.session = nil
 		s.lastErr = errors.New("mongoclient is shut down")
 	}
-	s.mu.Unlock()
 
 	level.Info(s.logger).Log("msg", "mongoclient: shutdown complete")
 }
