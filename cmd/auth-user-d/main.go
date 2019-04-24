@@ -21,7 +21,7 @@ type configuration struct {
 	RateLimitEvery time.Duration `envconfig:"AUTH_RATE_LIMIT_EVERY" default:"1us"`
 	RateLimitBurst int           `envconfig:"AUTH_RATE_LIMIT_BURST" default:"100"`
 
-	MongoURL string `envconfig:"AUTH_MONGO_URL" default:"127.0.0.1:27017"`
+	MongoURL string `envconfig:"AUTH_MONGO_URL" default:"mongodb://127.0.0.1:27017"`
 	DBName   string `envconfig:"AUTH_DB_NAME"   default:"auth-user"`
 }
 

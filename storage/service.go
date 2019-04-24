@@ -10,7 +10,7 @@ import (
 
 // CreateUser creates a user in storage
 func (s *Storage) CreateUser(ctx context.Context, user *types.User) error {
-	err := db.C(collectionUser).Insert(&user)
+	_, err := s.session.Collection(collectionUser).InsertOne(context.TODO(), &user)
 	return err
 }
 
@@ -18,14 +18,13 @@ func (s *Storage) CreateUser(ctx context.Context, user *types.User) error {
 func (s *Storage) FindUserByLogin(ctx context.Context, login string) (*types.User, error) {
 	var user *types.User
 	filter := bson.M{"login": login}
-	err := db.C(collectionUser).Find(filter).One(&user)
+	err := s.session.Collection(collectionUser).FindOne(context.TODO(), filter).Decode(&user)
 	return user, err
 }
 
 // CreateSession create new session in storage
 func (s *Storage) CreateSession(ctx context.Context, session *types.Session) error {
-	err := db.C(collectionAuth).Insert(&session)
-	s.session.Client()
+	_, err := s.session.Collection(collectionAuth).InsertOne(context.TODO(), &session)
 	return err
 }
 
@@ -33,6 +32,6 @@ func (s *Storage) CreateSession(ctx context.Context, session *types.Session) err
 func (s *Storage) FindAccessToken(ctx context.Context, clientToken string) (*types.Session, error) {
 	var session *types.Session
 	filter := bson.M{"access_token": clientToken}
-	err := db.C(collectionAuth).Find(filter).One(&session)
+	err := s.session.Collection(collectionAuth).FindOne(context.TODO(), filter).Decode(&session)
 	return session, err
 }
