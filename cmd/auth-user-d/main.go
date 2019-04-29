@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/evgeny08/auth-user/natsserver"
+	log2 "log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,6 +25,8 @@ type configuration struct {
 
 	MongoURL string `envconfig:"AUTH_MONGO_URL" default:"mongodb://127.0.0.1:27017"`
 	DBName   string `envconfig:"AUTH_DB_NAME"   default:"auth-user"`
+
+	ServerNATSURL string `envconfig:"AUTH_SERVER_NATS_URL"default:"nats://127.0.0.1:4222"`
 }
 
 func main() {
@@ -52,6 +56,22 @@ func main() {
 		level.Error(logger).Log("msg", "failed to initialize MongoDB", "err", err)
 		os.Exit(exitCodeFailure)
 	}
+
+	serverNATS, err := natsserver.New(&natsserver.Config{
+		Logger: log2.Logger{},
+		URL:    cfg.ServerNATSURL,
+	})
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to initialize NATS server", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+	go func() {
+		level.Info(logger).Log("msg", "starting NATS server", "url", cfg.ServerNATSURL)
+		if err := serverNATS.Run(); err != nil {
+			level.Error(logger).Log("msg", "NATS server run failure", "err", err)
+			os.Exit(exitCodeFailure)
+		}
+	}()
 
 	serverHTTP, err := httpserver.New(&httpserver.Config{
 		Logger:      logger,

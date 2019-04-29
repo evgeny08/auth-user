@@ -2,12 +2,12 @@ package httpserver
 
 import (
 	"context"
-	"golang.org/x/time/rate"
 	"net/http"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"golang.org/x/time/rate"
 
 	"github.com/evgeny08/auth-user/types"
 )
