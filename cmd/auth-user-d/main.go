@@ -78,6 +78,7 @@ func main() {
 		Port:        cfg.HTTPPort,
 		Storage:     mongoDB,
 		RateLimiter: rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
+		ServerNATS:  serverNATS,
 	})
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to initialize HTTP server", "err", err)

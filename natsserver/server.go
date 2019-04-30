@@ -12,8 +12,8 @@ type ServerNATS struct {
 }
 
 type Config struct {
-	Logger    log.Logger
-	URL       string
+	Logger log.Logger
+	URL    string
 }
 
 func New(cfg *Config) (*ServerNATS, error) {
@@ -37,11 +37,10 @@ func (s *ServerNATS) Run() error {
 
 	// Subscribe
 	if _, err := s.srv.Subscribe("updates", func(m *nats.Msg) {
-		wg.Done()
+		log.Printf("%s: %s", m.Subject, m.Data)
 	}); err != nil {
 		log.Fatal(err)
 	}
-
 	// Wait for a message to come in
 	wg.Wait()
 	return nil

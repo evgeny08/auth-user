@@ -20,8 +20,9 @@ type service interface {
 }
 
 type basicService struct {
-	logger  log.Logger
-	storage Storage
+	logger     log.Logger
+	storage    Storage
+	serverNATS ServerNATS
 }
 
 // createUser creates a new User
@@ -43,6 +44,12 @@ func (s *basicService) createUser(ctx context.Context, user *types.User) error {
 	err = s.storage.CreateUser(ctx, user)
 	if err != nil {
 		return errorf(ErrInternal, "failed to insert user: %v", err)
+	}
+
+	msg := "user created"
+	err = s.serverNATS.Send(msg)
+	if err != nil {
+		return errorf(ErrInternal, "failed to send msg", err)
 	}
 	return nil
 }
@@ -83,7 +90,7 @@ func (s *basicService) findUserByLogin(ctx context.Context, login, clientToken s
 		}
 		return nil, errorf(ErrInternal, "find token error: %v", err)
 	}
-	if sess.AccessToken != clientToken{
+	if sess.AccessToken != clientToken {
 		return nil, errorf(ErrInternal, "failed to authorisation: %v", err)
 	}
 	if sess.ExpiresAccessToken < time.Now().UTC().UnixNano() {

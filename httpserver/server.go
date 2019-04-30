@@ -24,6 +24,7 @@ type Config struct {
 	Port        string
 	Storage     Storage
 	RateLimiter *rate.Limiter
+	ServerNATS  ServerNATS
 }
 
 // Storage is a persistent auth-user storage.
@@ -32,6 +33,10 @@ type Storage interface {
 	FindUserByLogin(ctx context.Context, login string) (*types.User, error)
 	CreateSession(ctx context.Context, session *types.Session) error
 	FindAccessToken(ctx context.Context, clientToken string) (*types.Session, error)
+}
+
+type ServerNATS interface {
+	Send(msg string) error
 }
 
 // New creates a new http server.
@@ -53,6 +58,7 @@ func New(cfg *Config) (*ServerHTTP, error) {
 	svc := &basicService{
 		logger:  cfg.Logger,
 		storage: cfg.Storage,
+		serverNATS: cfg.ServerNATS,
 	}
 
 	handler := newHandler(&handlerConfig{
