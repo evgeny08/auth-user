@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/evgeny08/auth-user/natsserver"
+	"github.com/evgeny08/auth-user/websocket"
 	log2 "log"
 	"os"
 	"os/signal"
@@ -27,6 +28,8 @@ type configuration struct {
 	DBName   string `envconfig:"AUTH_DB_NAME"   default:"auth-user"`
 
 	ServerNATSURL string `envconfig:"AUTH_SERVER_NATS_URL"default:"nats://127.0.0.1:4222"`
+
+	WebSocketURL string `envconfig:"AUTH_WEBSOCKET_URL" default:"//127.0.0.1:8844"`
 }
 
 func main() {
@@ -57,6 +60,14 @@ func main() {
 		os.Exit(exitCodeFailure)
 	}
 
+	webSocket, err := websocket.New(&websocket.Config{
+		Logger: log2.Logger{},
+	})
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to initialise websocket", "err", err)
+		os.Exit(exitCodeFailure)
+	}
+
 	serverNATS, err := natsserver.New(&natsserver.Config{
 		Logger: log2.Logger{},
 		URL:    cfg.ServerNATSURL,
@@ -79,6 +90,7 @@ func main() {
 		Storage:     mongoDB,
 		RateLimiter: rate.NewLimiter(rate.Every(cfg.RateLimitEvery), cfg.RateLimitBurst),
 		ServerNATS:  serverNATS,
+		WebSocket:   webSocket,
 	})
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to initialize HTTP server", "err", err)

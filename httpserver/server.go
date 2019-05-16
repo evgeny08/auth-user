@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 
@@ -25,6 +26,7 @@ type Config struct {
 	Storage     Storage
 	RateLimiter *rate.Limiter
 	ServerNATS  ServerNATS
+	WebSocket   WebSocket
 }
 
 // Storage is a persistent auth-user storage.
@@ -39,13 +41,17 @@ type ServerNATS interface {
 	Send(msg string) error
 }
 
+type WebSocket interface {
+	WsHandler(w http.ResponseWriter, r *http.Request)
+}
+
 // New creates a new http server.
 func New(cfg *Config) (*ServerHTTP, error) {
-	mux := http.NewServeMux()
+	mu := http.NewServeMux()
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      mux,
+		Handler:      mu,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
@@ -56,9 +62,10 @@ func New(cfg *Config) (*ServerHTTP, error) {
 	}
 
 	svc := &basicService{
-		logger:  cfg.Logger,
-		storage: cfg.Storage,
+		logger:     cfg.Logger,
+		storage:    cfg.Storage,
 		serverNATS: cfg.ServerNATS,
+		webSocket:  cfg.WebSocket,
 	}
 
 	handler := newHandler(&handlerConfig{
@@ -67,7 +74,12 @@ func New(cfg *Config) (*ServerHTTP, error) {
 		rateLimiter: cfg.RateLimiter,
 	})
 
-	mux.Handle("/api/v1/", accessControl(handler))
+	mu.Handle("/api/v1/", accessControl(handler))
+
+	router := mux.NewRouter()
+	router.HandleFunc("/ws", svc.webSocket.WsHandler)
+
+	http.ListenAndServe(":8844", router)
 
 	return server, nil
 }

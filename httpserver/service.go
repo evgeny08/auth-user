@@ -23,6 +23,7 @@ type basicService struct {
 	logger     log.Logger
 	storage    Storage
 	serverNATS ServerNATS
+	webSocket  WebSocket
 }
 
 // createUser creates a new User
