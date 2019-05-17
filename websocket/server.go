@@ -41,16 +41,19 @@ func New(cfg *Config) (*WebSocket, error) {
 	webSocket := &WebSocket{
 		logger: cfg.Logger,
 	}
-	go echo()
-
 	return webSocket, nil
 }
 
 func Writer(coord *message) {
+	select {
+	case msg := <-broadcast:
+		log.Fatal("received message", msg)
+	default:
+	}
 	broadcast <- coord
 }
 
-func msgHandler(w http.ResponseWriter, r *http.Request) {
+func (s *WebSocket) MsgHandler(w http.ResponseWriter, r *http.Request) {
 	var coordinates message
 	if err := json.NewDecoder(r.Body).Decode(&coordinates); err != nil {
 		log.Printf("ERROR: %s", err)
@@ -77,18 +80,16 @@ func (s *WebSocket) WsHandler(w http.ResponseWriter, r *http.Request) {
 			Conn: ws,
 			ID:   string(p),
 		}] = true
-		fmt.Println(clients)
 	}
 }
 
 // 3
-func echo() {
+func (s *WebSocket) Echo() {
 	for {
 		val := <-broadcast
 		msg := fmt.Sprintf("%s", val.Msg)
 		msgID := val.ID
 		for client := range clients {
-			fmt.Println(client.ID)
 			if client.ID == msgID {
 				err := client.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
 				if err != nil {

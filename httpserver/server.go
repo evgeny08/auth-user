@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 
@@ -43,15 +42,17 @@ type ServerNATS interface {
 
 type WebSocket interface {
 	WsHandler(w http.ResponseWriter, r *http.Request)
+	MsgHandler(w http.ResponseWriter, r *http.Request)
+	Echo()
 }
 
 // New creates a new http server.
 func New(cfg *Config) (*ServerHTTP, error) {
-	mu := http.NewServeMux()
+	mux := http.NewServeMux()
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      mu,
+		Handler:      mux,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
@@ -74,12 +75,11 @@ func New(cfg *Config) (*ServerHTTP, error) {
 		rateLimiter: cfg.RateLimiter,
 	})
 
-	mu.Handle("/api/v1/", accessControl(handler))
+	mux.Handle("/api/v1/", accessControl(handler))
+	mux.HandleFunc("/ws", svc.webSocket.WsHandler)
+	mux.HandleFunc("/ws/msg", svc.webSocket.MsgHandler)
 
-	router := mux.NewRouter()
-	router.HandleFunc("/ws", svc.webSocket.WsHandler)
-
-	http.ListenAndServe(":8844", router)
+	go svc.webSocket.Echo()
 
 	return server, nil
 }
