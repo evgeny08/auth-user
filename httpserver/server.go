@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"github.com/evgeny08/auth-user/websocket"
 	"net/http"
 	"time"
 
@@ -42,8 +43,8 @@ type ServerNATS interface {
 
 type WebSocket interface {
 	WsHandler(w http.ResponseWriter, r *http.Request)
-	MsgHandler(w http.ResponseWriter, r *http.Request)
 	Echo()
+	Writer(coord *websocket.Message) error
 }
 
 // New creates a new http server.
@@ -77,7 +78,6 @@ func New(cfg *Config) (*ServerHTTP, error) {
 
 	mux.Handle("/api/v1/", accessControl(handler))
 	mux.HandleFunc("/ws", svc.webSocket.WsHandler)
-	mux.HandleFunc("/ws/msg", svc.webSocket.MsgHandler)
 
 	go svc.webSocket.Echo()
 

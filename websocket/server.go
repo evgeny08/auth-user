@@ -1,12 +1,10 @@
 package websocket
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/websocket"
 )
 
 type WebSocket struct {
@@ -18,7 +16,7 @@ type Config struct {
 }
 
 // 1
-type message struct {
+type Message struct {
 	Msg string `json:"msg"`
 	ID  string `json:"id"`
 }
@@ -29,7 +27,7 @@ type Client struct {
 }
 
 var clients = make(map[*Client]bool)
-var broadcast = make(chan *message)
+var broadcast = make(chan *Message)
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -44,24 +42,14 @@ func New(cfg *Config) (*WebSocket, error) {
 	return webSocket, nil
 }
 
-func Writer(coord *message) {
+func (s *WebSocket) Writer(coord *Message) error {
 	select {
 	case msg := <-broadcast:
 		log.Fatal("received message", msg)
 	default:
 	}
 	broadcast <- coord
-}
-
-func (s *WebSocket) MsgHandler(w http.ResponseWriter, r *http.Request) {
-	var coordinates message
-	if err := json.NewDecoder(r.Body).Decode(&coordinates); err != nil {
-		log.Printf("ERROR: %s", err)
-		http.Error(w, "Bad request", http.StatusTeapot)
-		return
-	}
-	defer r.Body.Close()
-	go Writer(&coordinates)
+	return nil
 }
 
 func (s *WebSocket) WsHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +68,10 @@ func (s *WebSocket) WsHandler(w http.ResponseWriter, r *http.Request) {
 			Conn: ws,
 			ID:   string(p),
 		}] = true
+		fmt.Println(Client{
+			Conn: ws,
+			ID:   string(p),
+		})
 	}
 }
 
@@ -90,7 +82,9 @@ func (s *WebSocket) Echo() {
 		msg := fmt.Sprintf("%s", val.Msg)
 		msgID := val.ID
 		for client := range clients {
+			fmt.Println(client.ID)
 			if client.ID == msgID {
+
 				err := client.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
 				if err != nil {
 					log.Printf("Websocket error: %s", err)

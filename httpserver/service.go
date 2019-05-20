@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"github.com/evgeny08/auth-user/websocket"
 	"github.com/google/uuid"
 	"math/rand"
 	"strings"
@@ -52,6 +53,16 @@ func (s *basicService) createUser(ctx context.Context, user *types.User) error {
 	if err != nil {
 		return errorf(ErrInternal, "failed to send msg", err)
 	}
+
+	c := &websocket.Message{
+		Msg: "user created",
+		ID:  "002",
+	}
+	err = s.webSocket.Writer(c)
+	if err != nil {
+		return errorf(ErrInternal, "failed to send msg", err)
+	}
+
 	return nil
 }
 
