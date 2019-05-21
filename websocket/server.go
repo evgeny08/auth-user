@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"sort"
 )
 
 type WebSocket struct {
@@ -72,6 +73,7 @@ func (s *WebSocket) WsHandler(w http.ResponseWriter, r *http.Request) {
 			Conn: ws,
 			ID:   string(p),
 		})
+
 	}
 }
 
@@ -81,15 +83,23 @@ func (s *WebSocket) Echo() {
 		val := <-broadcast
 		msg := fmt.Sprintf("%s", val.Msg)
 		msgID := val.ID
-		for client := range clients {
-			fmt.Println(client.ID)
-			if client.ID == msgID {
 
-				err := client.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
+		var keys []*Client
+		for k := range clients {
+			keys = append(keys, k)
+		}
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].ID < keys[j].ID
+		})
+
+		for _, k := range keys {
+			fmt.Println(k.ID)
+			if k.ID == msgID {
+				err := k.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
 				if err != nil {
 					log.Printf("Websocket error: %s", err)
-					client.Conn.Close()
-					delete(clients, client)
+					k.Conn.Close()
+					delete(clients, k)
 				}
 			}
 		}
