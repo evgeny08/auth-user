@@ -70,11 +70,6 @@ func (s *WebSocket) WsHandler(w http.ResponseWriter, r *http.Request) {
 			Conn: ws,
 			ID:   string(p),
 		}] = true
-		fmt.Println(Client{
-			Conn: ws,
-			ID:   string(p),
-		})
-
 	}
 }
 
@@ -96,15 +91,19 @@ func (s *WebSocket) Echo() {
 			return keys[i].ID < keys[j].ID
 		})
 
-		//search in sorted slice
+		//binary search in sorted slice
 		for _, k := range keys {
-			fmt.Println(k.ID)
-			if k.ID == msgID {
-				err := k.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
-				if err != nil {
-					log.Printf("Websocket error: %s", err)
-					k.Conn.Close()
-					delete(clients, k)
+			i := sort.Search(len(keys), func(i int) bool {
+				return k.ID <= keys[i].ID
+			})
+			if i < len(keys) && keys[i].ID == k.ID {
+				if k.ID == msgID {
+					err := k.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
+					if err != nil {
+						log.Printf("Websocket error: %s", err)
+						k.Conn.Close()
+						delete(clients, k)
+					}
 				}
 			}
 		}
