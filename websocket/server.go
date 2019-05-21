@@ -2,10 +2,11 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"sort"
+
+	"github.com/gorilla/websocket"
 )
 
 type WebSocket struct {
@@ -84,14 +85,18 @@ func (s *WebSocket) Echo() {
 		msg := fmt.Sprintf("%s", val.Msg)
 		msgID := val.ID
 
+		//create slice keys
 		var keys []*Client
 		for k := range clients {
 			keys = append(keys, k)
 		}
+
+		//sort by client ID
 		sort.Slice(keys, func(i, j int) bool {
 			return keys[i].ID < keys[j].ID
 		})
 
+		//search in sorted slice
 		for _, k := range keys {
 			fmt.Println(k.ID)
 			if k.ID == msgID {
